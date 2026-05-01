@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load url_extras %}
+{% block title %}URL Threat Scanner{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+
+  <!-- Page Header -->
+  <div class="page-header mb-5">
+    <div class="page-header-icon page-header-icon--url">
+      <i class="bi bi-link-45deg"></i>
+    </div>
+    <div>
+      <h1 class="page-title">URL Threat Scanner</h1>
+      <p class="page-sub">Random Forest classifier with 20 structural features</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Input Panel ─────────────────────────────────────────────────── -->
+    <div class="col-lg-6">
+      <div class="cg-card h-100">
+        <div class="cg-card-header">
+          <i class="bi bi-globe me-2"></i>
+          <span>Enter URL to Scan</span>
+        </div>
+        <div class="cg-card-body">
+
+          {% if error %}
+          <div class="alert cg-alert-danger mb-4" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2"></i>
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <form method="POST" id="urlForm" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              {{ form.url.label_tag }}
+              {{ form.url }}
+              {% if form.url.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.url.errors.0 }}
+                </div>
+              {% endif %}
+              <div class="form-hint mt-1">
+                <i class="bi bi-info-circle me-1"></i>
+                Paste a full URL including http:// or https://
+              </div>
+            </div>
+
+            <!-- Sample URLs -->
+            <div class="mb-4">
+              <p class="sample-label">Try a sample:</p>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn cg-btn-sample btn-sm"
+                  data-url="http://secure-bank-login-verify.tk/account/confirm?id=1923&token=xA7k">
+                  🚨 Malicious Sample
+                </button>
+                <button type="button" class="btn cg-btn-sample-safe btn-sm"
+                  data-url="https://www.wikipedia.org/wiki/Machine_learning">
+                  ✅ Safe Sample
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn cg-btn-secondary w-100 btn-lg" id="scanBtn">
+              <i class="bi bi-shield-fill-check me-2"></i>Scan URL
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Result Panel ────────────────────────────────────────────────── -->
+    <div class="col-lg-6">
+      <div class="cg-card h-100">
+        <div class="cg-card-header">
+          <i class="bi bi-clipboard-data me-2"></i>
+          <span>Scan Result</span>
+        </div>
+        <div class="cg-card-body d-flex flex-column">
+
+          {% if result %}
+
+          <!-- Verdict Banner -->
+          <div class="verdict-banner {% if result.is_malicious %}verdict-banner--spam{% else %}verdict-banner--safe{% endif %} mb-4">
+            <div class="verdict-icon">
+              {% if result.is_malicious %}
+                <i class="bi bi-bug-fill"></i>
+              {% else %}
+                <i class="bi bi-shield-fill-check"></i>
+              {% endif %}
+            </div>
+            <div class="verdict-text">
+              <div class="verdict-label">{{ result.prediction }}</div>
+              <div class="verdict-sub">
+                Domain: <strong>{{ result.domain }}</strong> · {{ result.scheme|upper }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk Score Gauge -->
+          <div class="risk-gauge-section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="conf-label">Risk Score</span>
+              <span class="risk-badge risk-badge--{{ result.risk_level|lower }}">
+                {{ result.risk_level }} Risk
+              </span>
+            </div>
+            <div class="risk-gauge-wrap">
+              <div class="risk-gauge-track">
+                <div class="risk-gauge-fill {% if result.risk_score >= 75 %}gauge-critical{% elif result.risk_score >= 50 %}gauge-high{% elif result.risk_score >= 25 %}gauge-medium{% else %}gauge-low{% endif %}"
+                     style="width: 0%"
+                     data-width="{{ result.risk_score }}%">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <span class="gauge-label text-success">0 Safe</span>
+                <span class="gauge-score {% if result.is_malicious %}text-danger{% else %}text-success{% endif %}">
+                  {{ result.risk_score }}/100
+                </span>
+                <span class="gauge-label text-danger">100 Critical</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidence -->
+          <div class="confidence-section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="conf-label">Model Confidence</span>
+              <span class="conf-value {% if result.is_malicious %}text-danger{% else %}text-success{% endif %}">
+                {{ result.confidence_percent }}
+              </span>
+            </div>
+            <div class="confidence-bar-wrap">
+              <div class="confidence-bar {% if result.is_malicious %}confidence-bar--spam{% else %}confidence-bar--safe{% endif %}"
+                   style="width: 0%"
+                   data-width="{{ result.confidence_percent }}">
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Breakdown -->
+          <div class="mb-4">
+            <p class="section-mini-title">Feature Analysis</p>
+            <div class="feature-grid">
+              {% for name, value in result.features.items %}
+              <div class="feature-item">
+                <span class="feature-name">{{ name }}</span>
+                <span class="feature-value
+                  {% if value == True %}text-warning
+                  {% elif value == False %}text-success
+                  {% else %}text-info{% endif %}">
+                  {% if value == True %}⚠ Yes
+                  {% elif value == False %}✓ No
+                  {% else %}{{ value }}{% endif %}
+                </span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Suspicious Keywords -->
+          {% if result.found_keywords %}
+          <div class="mb-4">
+            <p class="section-mini-title text-warning">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Suspicious Keywords ({{ result.found_keywords|length }})
+            </p>
+            <div class="keyword-cloud">
+              {% for kw in result.found_keywords %}
+              <span class="keyword-chip">{{ kw }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="result-meta mt-auto">
+            <span class="meta-item">
+              <i class="bi bi-braces me-1"></i>Model: Random Forest Classifier
+            </span>
+          </div>
+
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="bi bi-link-45deg"></i>
+            </div>
+            <p class="empty-title">No scan yet</p>
+            <p class="empty-sub">Enter a URL on the left and click Scan</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Feature Info Card -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="cg-card cg-card--flat">
+        <div class="cg-card-body">
+          <h5 class="info-title mb-3">
+            <i class="bi bi-gear-fill me-2 text-accent"></i>
+            Extracted Features
+          </h5>
+          <div class="row g-2">
+            {% for feat in "URL Length,Dot Count,Hyphen Count,Digit Count,HTTPS,@ Symbol,IP Address,Subdomain Count,Query Params,Path Depth,Redirect,Suspicious TLD,Keyword Count,Domain Entropy,Port,Double Slash,Underscore Count,Special Chars,Slash Count,Domain Length"|split:"," %}
+            <div class="col-6 col-md-3 col-lg-2">
+              <div class="feat-badge">{{ feat }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Sample URL buttons
+const urlInput = document.getElementById('url-input');
+document.querySelectorAll('[data-url]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    urlInput.value = btn.dataset.url;
+    urlInput.focus();
+  });
+});
+
+// Form submit
+document.getElementById('urlForm')?.addEventListener('submit', () => {
+  showLoading('Scanning URL with Random Forest…');
+});
+
+// Animate bars
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.confidence-bar, .risk-gauge-fill').forEach(bar => {
+      bar.style.transition = 'width 1.2s cubic-bezier(0.4,0,0.2,1)';
+      bar.style.width = bar.dataset.width;
+    });
+  }, 300);
+});
+</script>
+{% endblock %}

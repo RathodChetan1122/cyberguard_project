@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+db.sqlite3
+*.sqlite3
+ml_models/*.pkl
+staticfiles/
+media/
+.env
+*.log
+.DS_Store
+Thumbs.db
+*.egg-info/
+dist/
+build/

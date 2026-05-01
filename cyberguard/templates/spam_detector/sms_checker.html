@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}SMS Spam Checker{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+
+  <!-- Page Header -->
+  <div class="page-header mb-5">
+    <div class="page-header-icon">
+      <i class="bi bi-chat-dots-fill"></i>
+    </div>
+    <div>
+      <h1 class="page-title">SMS Spam Detector</h1>
+      <p class="page-sub">Naive Bayes classifier with TF-IDF feature extraction</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Input Panel ─────────────────────────────────────────────────── -->
+    <div class="col-lg-6">
+      <div class="cg-card h-100">
+        <div class="cg-card-header">
+          <i class="bi bi-pencil-square me-2"></i>
+          <span>Enter SMS Message</span>
+        </div>
+        <div class="cg-card-body">
+
+          {% if error %}
+          <div class="alert cg-alert-danger mb-4" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2"></i>
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <form method="POST" id="smsForm" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              {{ form.message.label_tag }}
+              {{ form.message }}
+              {% if form.message.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.message.errors.0 }}
+                </div>
+              {% endif %}
+              <div class="form-hint mt-1">
+                <i class="bi bi-info-circle me-1"></i>
+                Max 5,000 characters. <span id="charCount">0</span> / 5000
+              </div>
+            </div>
+
+            <!-- Sample messages -->
+            <div class="mb-4">
+              <p class="sample-label">Try a sample:</p>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn cg-btn-sample btn-sm"
+                  data-text="Congratulations! You've been selected to receive a FREE iPhone 14. Click here to claim: http://win-prizes.tk/claim">
+                  🚨 Spam Sample
+                </button>
+                <button type="button" class="btn cg-btn-sample-safe btn-sm"
+                  data-text="Hey, are you coming to the meeting tomorrow at 3pm? Let me know if you need the agenda.">
+                  ✅ Ham Sample
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn cg-btn-primary w-100 btn-lg" id="analyzeBtn">
+              <i class="bi bi-cpu-fill me-2"></i>Analyze Message
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Result Panel ────────────────────────────────────────────────── -->
+    <div class="col-lg-6">
+      <div class="cg-card h-100" id="resultPanel">
+        <div class="cg-card-header">
+          <i class="bi bi-clipboard-data me-2"></i>
+          <span>Analysis Result</span>
+        </div>
+        <div class="cg-card-body d-flex flex-column">
+
+          {% if result %}
+          <!-- Verdict Banner -->
+          <div class="verdict-banner {% if result.is_spam %}verdict-banner--spam{% else %}verdict-banner--safe{% endif %} mb-4">
+            <div class="verdict-icon">
+              {% if result.is_spam %}
+                <i class="bi bi-exclamation-octagon-fill"></i>
+              {% else %}
+                <i class="bi bi-shield-fill-check"></i>
+              {% endif %}
+            </div>
+            <div class="verdict-text">
+              <div class="verdict-label">{{ result.prediction }}</div>
+              <div class="verdict-sub">
+                {% if result.is_spam %}This message appears to be spam{% else %}This message appears legitimate{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidence Meter -->
+          <div class="confidence-section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="conf-label">Confidence</span>
+              <span class="conf-value {% if result.is_spam %}text-danger{% else %}text-success{% endif %}">
+                {{ result.confidence_percent }}
+              </span>
+            </div>
+            <div class="confidence-bar-wrap">
+              <div class="confidence-bar {% if result.is_spam %}confidence-bar--spam{% else %}confidence-bar--safe{% endif %}"
+                   style="width: 0%"
+                   data-width="{{ result.confidence_percent }}">
+              </div>
+            </div>
+          </div>
+
+          <!-- Highlighted Message -->
+          <div class="mb-4">
+            <p class="section-mini-title">Message Preview</p>
+            <div class="message-preview">{{ result.highlighted_text|safe }}</div>
+          </div>
+
+          <!-- Suspicious Words -->
+          {% if result.suspicious_words_found %}
+          <div class="mb-4">
+            <p class="section-mini-title text-warning">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Suspicious Keywords ({{ result.suspicious_words_found|length }})
+            </p>
+            <div class="keyword-cloud">
+              {% for word in result.suspicious_words_found %}
+              <span class="keyword-chip">{{ word }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Meta -->
+          <div class="result-meta mt-auto">
+            <span class="meta-item">
+              <i class="bi bi-braces me-1"></i>Model: Multinomial Naive Bayes
+            </span>
+          </div>
+
+          {% else %}
+          <!-- Empty State -->
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="bi bi-chat-square-text"></i>
+            </div>
+            <p class="empty-title">No analysis yet</p>
+            <p class="empty-sub">Enter an SMS message on the left and click Analyze</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── How the model works ─────────────────────────────────────────────── -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="cg-card cg-card--flat">
+        <div class="cg-card-body">
+          <div class="row g-4 align-items-center">
+            <div class="col-md-8">
+              <h5 class="info-title mb-2">
+                <i class="bi bi-info-circle me-2 text-accent"></i>
+                How SMS Detection Works
+              </h5>
+              <p class="info-text mb-0">
+                The model was trained on the UCI SMS Spam Collection dataset (~5,500 messages).
+                Text is lowercased, punctuation removed, then converted to TF-IDF feature vectors.
+                A <strong>Multinomial Naive Bayes</strong> classifier predicts spam probability.
+                Suspicious keywords are highlighted for transparency.
+              </p>
+            </div>
+            <div class="col-md-4">
+              <div class="pipeline-steps">
+                <div class="pipeline-step">Raw Text</div>
+                <i class="bi bi-arrow-right pipeline-arrow"></i>
+                <div class="pipeline-step">TF-IDF</div>
+                <i class="bi bi-arrow-right pipeline-arrow"></i>
+                <div class="pipeline-step">Naive Bayes</div>
+                <i class="bi bi-arrow-right pipeline-arrow"></i>
+                <div class="pipeline-step pipeline-step--verdict">Verdict</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Character counter
+const textarea = document.getElementById('sms-input');
+const counter  = document.getElementById('charCount');
+if (textarea && counter) {
+  textarea.addEventListener('input', () => {
+    counter.textContent = textarea.value.length;
+  });
+}
+
+// Sample message buttons
+document.querySelectorAll('[data-text]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    textarea.value = btn.dataset.text;
+    counter.textContent = textarea.value.length;
+    textarea.focus();
+  });
+});
+
+// Form submit → show loading
+document.getElementById('smsForm')?.addEventListener('submit', () => {
+  showLoading('Analysing SMS with Naive Bayes…');
+});
+
+// Animate confidence bar on load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.confidence-bar').forEach(bar => {
+      bar.style.transition = 'width 1s ease';
+      bar.style.width = bar.dataset.width;
+    });
+  }, 300);
+});
+</script>
+{% endblock %}

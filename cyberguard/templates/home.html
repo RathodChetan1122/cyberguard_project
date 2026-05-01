@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="cg-hero">
+  <div class="hero-grid-bg"></div>
+  <div class="container-xl position-relative">
+    <div class="row justify-content-center text-center">
+      <div class="col-lg-9">
+
+        <div class="hero-badge mb-4">
+          <span class="badge-dot"></span>
+          <span>AI Threat Intelligence System</span>
+        </div>
+
+        <h1 class="hero-title">
+          Detect <span class="text-accent">Spam</span> &amp;<br>
+          <span class="text-accent">Malicious URLs</span><br>
+          in Milliseconds
+        </h1>
+
+        <p class="hero-sub mt-4 mb-5">
+          CyberGuard uses machine learning to instantly classify SMS messages as
+          spam or legitimate, and URLs as safe or malicious — protecting you from
+          phishing, scams, and cyber threats.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+          <a href="{% url 'sms_checker' %}" class="btn cg-btn-primary btn-lg px-5">
+            <i class="bi bi-chat-dots-fill me-2"></i>Check SMS
+          </a>
+          <a href="{% url 'url_checker' %}" class="btn cg-btn-secondary btn-lg px-5">
+            <i class="bi bi-shield-fill-check me-2"></i>Scan URL
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Bar ──────────────────────────────────────────────────────────── -->
+<section class="cg-stats-bar">
+  <div class="container-xl">
+    <div class="row g-0">
+
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-number">{{ total_predictions }}</div>
+          <div class="stat-label">Total Scans</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-number">{{ sms_predictions }}</div>
+          <div class="stat-label">SMS Analyzed</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-number">{{ url_predictions }}</div>
+          <div class="stat-label">URLs Scanned</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="stat-item stat-item--threat">
+          <div class="stat-number text-danger">{{ threat_count }}</div>
+          <div class="stat-label">Threats Found</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Module Cards ───────────────────────────────────────────────────────── -->
+<section class="cg-modules py-5">
+  <div class="container-xl">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">Detection Modules</h2>
+      <p class="section-sub">Two specialised AI models working together</p>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- SMS Module -->
+      <div class="col-md-6">
+        <div class="cg-module-card cg-module-card--sms h-100">
+          <div class="module-icon-wrap">
+            <i class="bi bi-chat-dots-fill module-icon"></i>
+          </div>
+          <h3 class="module-title mt-4">SMS Spam Detector</h3>
+          <p class="module-desc">
+            Powered by a <strong>Multinomial Naive Bayes</strong> classifier trained on
+            the UCI SMS Spam Collection dataset. Processes raw message text through
+            TF-IDF vectorisation to detect spam patterns with high accuracy.
+          </p>
+          <ul class="module-features">
+            <li><i class="bi bi-check2-circle text-success me-2"></i>TF-IDF Feature Extraction</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Suspicious Word Highlighting</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Confidence Score</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Real-time Analysis</li>
+          </ul>
+          <a href="{% url 'sms_checker' %}" class="btn cg-btn-primary mt-auto">
+            <i class="bi bi-arrow-right-circle me-2"></i>Analyse SMS
+          </a>
+        </div>
+      </div>
+
+      <!-- URL Module -->
+      <div class="col-md-6">
+        <div class="cg-module-card cg-module-card--url h-100">
+          <div class="module-icon-wrap module-icon-wrap--url">
+            <i class="bi bi-link-45deg module-icon"></i>
+          </div>
+          <h3 class="module-title mt-4">URL Threat Scanner</h3>
+          <p class="module-desc">
+            Uses a <strong>Random Forest</strong> classifier with 20 hand-crafted
+            lexical and structural features extracted from each URL — detecting
+            phishing, malware distribution, and suspicious redirect patterns.
+          </p>
+          <ul class="module-features">
+            <li><i class="bi bi-check2-circle text-success me-2"></i>20 Structural Features</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Domain Entropy Analysis</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Risk Score (0–100)</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Keyword Detection</li>
+          </ul>
+          <a href="{% url 'url_checker' %}" class="btn cg-btn-secondary mt-auto">
+            <i class="bi bi-arrow-right-circle me-2"></i>Scan URL
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ───────────────────────────────────────────────────────── -->
+<section class="cg-how py-5">
+  <div class="container-xl">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-sub">From input to verdict in under 100ms</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-md-3">
+        <div class="how-step">
+          <div class="step-num">01</div>
+          <h5>Input</h5>
+          <p>Paste your SMS or URL into the analysis form</p>
+        </div>
+      </div>
+
+      <div class="col-md-1 d-none d-md-flex align-items-center justify-content-center">
+        <i class="bi bi-arrow-right step-arrow"></i>
+      </div>
+
+      <div class="col-md-3">
+        <div class="how-step">
+          <div class="step-num">02</div>
+          <h5>Extract</h5>
+          <p>Features are extracted &amp; vectorised in real time</p>
+        </div>
+      </div>
+
+      <div class="col-md-1 d-none d-md-flex align-items-center justify-content-center">
+        <i class="bi bi-arrow-right step-arrow"></i>
+      </div>
+
+      <div class="col-md-3">
+        <div class="how-step">
+          <div class="step-num">03</div>
+          <h5>Classify</h5>
+          <p>ML model outputs prediction with confidence score</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Recent Scans ───────────────────────────────────────────────────────── -->
+{% if recent %}
+<section class="cg-recent py-5">
+  <div class="container-xl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="section-title mb-0">Recent Scans</h2>
+      <a href="{% url 'history' %}" class="btn cg-btn-outline btn-sm">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="cg-table-wrap">
+      <table class="table cg-table mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Input</th>
+            <th>Verdict</th>
+            <th>Confidence</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent %}
+          <tr>
+            <td>
+              <span class="type-badge type-badge--{{ log.type|lower }}">{{ log.type }}</span>
+            </td>
+            <td class="input-cell">{{ log.input_text|truncatechars:60 }}</td>
+            <td>
+              {% if log.is_threat %}
+                <span class="verdict-badge verdict-badge--threat">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ log.prediction }}
+                </span>
+              {% else %}
+                <span class="verdict-badge verdict-badge--safe">
+                  <i class="bi bi-shield-fill-check me-1"></i>{{ log.prediction }}
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="mini-conf">
+                <div class="mini-conf-bar" style="width:{{ log.confidence_percent }}"></div>
+                <span>{{ log.confidence_percent }}</span>
+              </div>
+            </td>
+            <td class="time-cell">{{ log.timestamp|timesince }} ago</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

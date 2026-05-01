@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}CyberGuard{% endblock %} — AI Threat Detection</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- Custom CSS -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/cyberguard.css' %}" />
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark cg-navbar sticky-top">
+  <div class="container-xl">
+    <!-- Brand -->
+    <a class="navbar-brand cg-brand" href="{% url 'home' %}">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-text">Cyber<span class="brand-accent">Guard</span></span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+
+        <li class="nav-item">
+          <a class="nav-link cg-nav-link {% if page == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">
+            <i class="bi bi-house-fill me-1"></i>Home
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link cg-nav-link {% if page == 'sms' %}active{% endif %}"
+             href="{% url 'sms_checker' %}">
+            <i class="bi bi-chat-dots-fill me-1"></i>SMS Checker
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link cg-nav-link {% if page == 'url' %}active{% endif %}"
+             href="{% url 'url_checker' %}">
+            <i class="bi bi-link-45deg me-1"></i>URL Scanner
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link cg-nav-link {% if page == 'history' %}active{% endif %}"
+             href="{% url 'history' %}">
+            <i class="bi bi-clock-history me-1"></i>History
+          </a>
+        </li>
+
+        <li class="nav-item ms-lg-2">
+          <a class="btn cg-btn-outline btn-sm" href="/api/sms/predict/" target="_blank">
+            <i class="bi bi-code-slash me-1"></i>API Docs
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════════════════════════ -->
+<main class="cg-main">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════════════════ -->
+<footer class="cg-footer">
+  <div class="container-xl">
+    <div class="row align-items-center py-4">
+      <div class="col-md-6">
+        <span class="cg-brand me-3">
+          <span class="brand-icon">⬡</span>
+          <span class="brand-text">Cyber<span class="brand-accent">Guard</span></span>
+        </span>
+        <span class="footer-tagline">AI-Powered Threat Detection</span>
+      </div>
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <span class="footer-tech">
+          <span class="tech-pill">Django</span>
+          <span class="tech-pill">scikit-learn</span>
+          <span class="tech-pill">Naive Bayes</span>
+          <span class="tech-pill">Random Forest</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="cg-loading-overlay d-none">
+  <div class="loading-content">
+    <div class="cg-spinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+    </div>
+    <p class="loading-text mt-3" id="loadingText">Analyzing…</p>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="{% static 'js/cyberguard.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

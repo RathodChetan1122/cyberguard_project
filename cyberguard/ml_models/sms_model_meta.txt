@@ -1,0 +1,6 @@
+Model: MultinomialNB
+Accuracy: 98.39%
+ROC-AUC:  98.99%
+Train size: 4457
+Test size:  1115
+Vocabulary: 7735

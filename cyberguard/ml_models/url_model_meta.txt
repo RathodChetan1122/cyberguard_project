@@ -1,0 +1,28 @@
+Model: RandomForestClassifier
+Accuracy: 98.94%
+ROC-AUC:  100.00%
+Train size: 376
+Test size:  94
+N-estimators: 150
+
+Feature Importances:
+  uses_https: 0.2726
+  suspicious_tld: 0.2256
+  keyword_count: 0.1685
+  hyphen_count: 0.0836
+  special_char_count: 0.0808
+  subdomain_count: 0.0463
+  url_length: 0.0362
+  domain_entropy: 0.0214
+  query_param_count: 0.0203
+  dot_count: 0.0201
+  digit_count: 0.0069
+  domain_length: 0.0056
+  has_ip_address: 0.0050
+  slash_count: 0.0032
+  path_depth: 0.0012
+  has_port: 0.0012
+  has_redirect: 0.0006
+  at_symbol: 0.0006
+  underscore_count: 0.0000
+  double_slash: 0.0000

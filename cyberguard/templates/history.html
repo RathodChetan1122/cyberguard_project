@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Prediction History{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+
+  <!-- Page Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 gap-3">
+    <div class="page-header mb-0">
+      <div class="page-header-icon page-header-icon--history">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Prediction History</h1>
+        <p class="page-sub">{{ total_count }} scan{{ total_count|pluralize }} recorded</p>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'export_history' %}" class="btn cg-btn-outline">
+        <i class="bi bi-download me-2"></i>Export CSV
+      </a>
+      <a href="{% url 'home' %}" class="btn cg-btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Scan
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Filters ──────────────────────────────────────────────────────────── -->
+  <div class="cg-card mb-4">
+    <div class="cg-card-body py-3">
+      <form method="GET" class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label cg-label mb-1">Type</label>
+          <select name="type" class="form-select cg-select" onchange="this.form.submit()">
+            <option value="ALL" {% if filter_type == 'ALL' %}selected{% endif %}>All Types</option>
+            <option value="SMS" {% if filter_type == 'SMS' %}selected{% endif %}>SMS Only</option>
+            <option value="URL" {% if filter_type == 'URL' %}selected{% endif %}>URL Only</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label cg-label mb-1">Result</label>
+          <select name="result" class="form-select cg-select" onchange="this.form.submit()">
+            <option value="ALL" {% if filter_result == 'ALL' %}selected{% endif %}>All Results</option>
+            <option value="THREAT" {% if filter_result == 'THREAT' %}selected{% endif %}>Threats Only</option>
+            <option value="SAFE" {% if filter_result == 'SAFE' %}selected{% endif %}>Safe Only</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <a href="{% url 'history' %}" class="btn cg-btn-outline">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Table ────────────────────────────────────────────────────────────── -->
+  {% if page_obj %}
+  <div class="cg-card">
+    <div class="cg-table-wrap">
+      <table class="table cg-table mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Input</th>
+            <th>Verdict</th>
+            <th>Confidence</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in page_obj %}
+          <tr>
+            <td class="text-muted small">{{ log.id }}</td>
+
+            <td>
+              <span class="type-badge type-badge--{{ log.type|lower }}">
+                {% if log.type == 'SMS' %}<i class="bi bi-chat-dots-fill me-1"></i>{% else %}<i class="bi bi-link-45deg me-1"></i>{% endif %}
+                {{ log.type }}
+              </span>
+            </td>
+
+            <td class="input-cell">
+              <span title="{{ log.input_text }}">{{ log.input_text|truncatechars:70 }}</span>
+            </td>
+
+            <td>
+              {% if log.is_threat %}
+                <span class="verdict-badge verdict-badge--threat">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ log.prediction }}
+                </span>
+              {% else %}
+                <span class="verdict-badge verdict-badge--safe">
+                  <i class="bi bi-shield-fill-check me-1"></i>{{ log.prediction }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="mini-conf">
+                <div class="mini-conf-bar {% if log.is_threat %}mini-conf-bar--threat{% endif %}"
+                     style="width: {{ log.confidence_percent }}">
+                </div>
+                <span>{{ log.confidence_percent }}</span>
+              </div>
+            </td>
+
+            <td class="time-cell small">{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="cg-card-footer">
+      <nav>
+        <ul class="pagination cg-pagination mb-0 justify-content-center">
+
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&type={{ filter_type }}&result={{ filter_result }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}&type={{ filter_type }}&result={{ filter_result }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&type={{ filter_type }}&result={{ filter_result }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="cg-card">
+    <div class="cg-card-body text-center py-5">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="bi bi-inbox"></i>
+        </div>
+        <p class="empty-title">No predictions yet</p>
+        <p class="empty-sub">Start by analysing an SMS or scanning a URL</p>
+        <div class="d-flex gap-3 justify-content-center mt-3">
+          <a href="{% url 'sms_checker' %}" class="btn cg-btn-primary">Check SMS</a>
+          <a href="{% url 'url_checker' %}" class="btn cg-btn-secondary">Scan URL</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

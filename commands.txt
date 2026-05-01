@@ -1,0 +1,25 @@
+1.# Create the virtual environment
+python -m venv venv
+
+2.# Activate it:
+# Windows PowerShell:
+venv\Scripts\activate
+
+# Mac / Linux:
+source venv/bin/activate
+
+#Unauthorised access error in activating environment:
+Set-ExecutionPolicy  -ExecutionPolicy RemoteSigned -Scope Process
+
+3.Installing Dependencies
+pip install -r requirements.txt
+
+4.Train the ML Models
+python setup_models.py
+
+5.Run Database Migrations
+python manage.py makemigrations spam_detector  
+python manage.py migrate
+
+6.Run the Application
+python manage.py runserver

@@ -1,0 +1,196 @@
+SMS SPAM DETECTION (Naive Bayes)
+
+Step 1: Example Input
+Let’s take a real SMS:
+"Congratulations! You have won a free ticket. Click now!"
+
+Step 2: Preprocessing
+We clean the text:
+✅ Lowercase
+congratulations! you have won a free ticket. click now!
+✅ Remove punctuation
+congratulations you have won a free ticket click now
+✅ Tokenization
+['congratulations', 'you', 'have', 'won', 'a', 'free', 'ticket', 'click', 'now']
+✅ Remove stopwords
+['congratulations', 'won', 'free', 'ticket', 'click']
+
+Step 3: Feature Extraction (TF-IDF)
+Now convert words → numbers.
+Example vocabulary:
+Word	Weight
+free	0.8
+win		0.7
+congratulations	0.9
+click	0.85
+
+Output vector:
+[0.9, 0.7, 0.8, 0.85]
+
+Step 4: Naive Bayes Algorithm (CORE LOGIC)
+Naive Bayes uses:
+👉 Probability of a message being spam given the words
+P(Spam|Words)
+
+Using Bayes Theorem:
+P(Spam|Words)=
+P(Words|Spam).P(Spam)/P(Words)
+	​
+🔷Example Calculation
+
+“Given this message, what is the probability it is Spam?”
+
+P(Spam | Message) → Final probability (what we want)
+P(Message | Spam) → Likelihood of words appearing in spam
+P(Spam) → Prior probability (how many spam messages in dataset)
+P(Message) → Same for both classes → ignored in practice
+Suppose from training:
+The “Naive” Assumption
+
+👉 It assumes all words are independent.
+
+Example:
+
+"free offer win money"
+
+Naive Bayes assumes:
+
+P(free, offer, win, money | Spam)
+=
+P(free|Spam) × P(offer|Spam) × P(win|Spam) × P(money|Spam)
+
+ In reality, words are related — but this assumption makes the model fast and simple.
+ Training Phase (How Model Learns)
+Step 1: Count Words in Dataset
+| Message             | Label |
+| ------------------- | ----- |
+| free money now      | Spam  |
+| win cash prize      | Spam  |
+| let's meet tomorrow | Ham   |
+
+Step2:Calculate Probabilities
+Prior Probability
+P(Spam) = 2/3
+P(Ham) = 1/3
+
+Likelihood Probability
+Example:
+P(free | Spam) = count(free in spam) / total spam words
+5. Laplace Smoothing (IMPORTANT)
+
+Problem:
+
+If a word never appears → probability = 0 → whole result becomes 0 ❌
+
+Solution:
+
+👉 Add +1 to every count
+
+Formula:
+P(word|class)=
+count(word)+1/total_words+vocabulary_size
+	​
+6. Prediction Phase
+Step 1: Get probabilities
+| Word | P(word | Spam) | P(word | Ham) |
+|-----------------|--------|--------|
+| free | 0.8 | 0.1 |
+| click | 0.7 | 0.2 |
+| congratulations | 0.9 | 0.05 |
+
+Step 2: Multiply probabilities
+Compute Spam Score:
+P(Spam) × P(free|Spam) × P(cash|Spam) × P(now|Spam)
+
+= 0.5 × 0.8 × 0.7 × 0.6
+= 0.168
+
+Compute Ham Score:
+P(Ham) = 0.5
+
+Ham score =
+0.5 × 0.1 × 0.2 × 0.05
+= 0.0005
+🔷 Final Decision
+Spam score >> Ham score
+
+👉 Output:
+
+SPAM ✅
+🔷 Why Naive Bayes Works Well
+Fast
+Works great for text
+Handles large vocabulary
+
+
+URL MALICIOUS DETECTION
+
+Step 1: Example URL
+
+http://secure-login-free-money.xyz
+
+Step 2: Feature Extraction
+
+| Feature          | Value |
+| ---------------- | ----- |
+| Length           | 38    |
+| Number of dots   | 2     |
+| Has @            | 0     |
+| Has hyphen (-)   | 1     |
+| Has HTTPS        | 0     |
+| Contains "login" | 1     |
+| Contains "free"  | 1     |
+
+Final feature vector:
+[38, 2, 0, 1, 0, 1, 1]
+
+Step 3: Random Forest Algorithm (CORE LOGIC)
+What is Random Forest?
+
+👉 A collection of many Decision Trees
+
+Each tree:
+
+Makes its own prediction
+Final output = majority voting
+Decision Tree Example
+
+Tree might ask:
+Is URL length > 30?
+   YES →
+      Contains "free"?
+         YES → Malicious
+         NO  → Safe
+   NO →
+      Has HTTPS?
+         YES → Safe
+         NO  → Malicious
+| Tree | Prediction |
+| ---- | ---------- |
+| 1    | Malicious  |
+| 2    | Malicious  |
+| 3    | Safe       |
+| 4    | Malicious  |
+| 5    | Malicious  |
+Output:
+Malicious (4/5 votes)
+
+SMS Flow
+User enters SMS
+   ↓
+Preprocessing
+   ↓
+TF-IDF Vectorization
+   ↓
+Naive Bayes Model
+   ↓
+Spam / Not Spam
+
+URL Flow
+User enters URL
+   ↓
+Feature Extraction
+   ↓
+Random Forest Model
+   ↓
+Malicious / Safe
