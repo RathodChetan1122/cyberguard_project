@@ -4,7 +4,7 @@
    
 CyberGuard is a **full-stack machine learning web application** that detects:   
 
-* 📱 SMS messages as **Spam / Not Spam**
+* 📱 SMS messages as **Spam / Not Spam**   
 * 🌐 URLs as **Malicious / Safe**
 
 The system uses **Natural Language Processing (NLP)** and **Machine Learning (ML)** models integrated into a **Django-based web application** with a responsive frontend.
